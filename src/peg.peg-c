@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #define YYRULECOUNT 32
+int   yydebug = 0;
+int   lineNumber = 0;
 #ifndef YY_MALLOC
 #define YY_MALLOC(C, N)		malloc(N)
 #endif
@@ -40,11 +42,7 @@
 #ifndef YY_END
 #define YY_END		( yy->__end= yy->__pos, 1)
 #endif
-#ifdef YY_DEBUG
-# define yyprintf(args)	fprintf args
-#else
-# define yyprintf(args)
-#endif
+# define yyprintf(args)	{ if (yydebug) fprintf args; }
 #ifndef YYSTYPE
 #define YYSTYPE	int
 #endif
@@ -66,6 +64,7 @@ struct _yycontext {
   char     *__buf;
   int       __buflen;
   int       __pos;
+  int       __pos2;
   int       __limit;
   char     *__text;
   int       __textlen;
@@ -93,6 +92,8 @@ struct _yycontext {
 #define YY_INPUT(yy, buf, result, max_size)		\
   {							\
     int yyc= getchar();					\
+    if (yy) yy->__pos2++;\
+    if ('\n' == yyc || '\r' == yyc) ++lineNumber;	\
     result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1);	\
     yyprintf((stderr, "<%c>", yyc));			\
   }
@@ -102,12 +103,14 @@ struct _yycontext {
 #define YY_CTX_PARAM
 #define YY_CTX_ARG_
 #define YY_CTX_ARG
-yycontext _yyctx= { 0, 0 };
+yycontext _yyctx= { 0, 0, 0, 0 };
 yycontext *yyctx= &_yyctx;
 #ifndef YY_INPUT
 #define YY_INPUT(buf, result, max_size)			\
   {							\
     int yyc= getchar();					\
+    if (yyctx) yyctx->__pos2++;\
+    if ('\n' == yyc || '\r' == yyc) ++lineNumber;	\
     result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1);	\
     yyprintf((stderr, "<%c>", yyc));			\
   }

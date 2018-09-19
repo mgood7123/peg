@@ -1,18 +1,16 @@
-SRC = src_
-CFLAGS = -g -w $(OFLAGS) $(XFLAGS) -I$(SRC)
+SRC = src
+CFLAGS = -g3 $(XFLAGS) -I$(SRC)
 OFLAGS = -O3 -DNDEBUG
 #OFLAGS = -pg
 
-OBJS = tree.o compile.o
-
 all : peg leg
 
-peg : peg.o $(OBJS)
-	$(CC) $(CFLAGS) -o $@-new peg.o $(OBJS)
+peg : peg.o
+	$(CC) $(CFLAGS) -o $@-new peg.o
 	mv $@-new $@
 
-leg : leg.o $(OBJS)
-	$(CC) $(CFLAGS) -o $@-new leg.o $(OBJS)
+leg : leg.o
+	$(CC) $(CFLAGS) -o $@-new leg.o
 	mv $@-new $@
 
 ROOT	=
@@ -27,7 +25,6 @@ $(BINDIR) :
 
 $(BINDIR)/% : %
 	cp -p $< $@
-	strip $@
 
 $(MANDIR) :
 	mkdir -p $(MANDIR)
@@ -40,7 +37,7 @@ uninstall : .FORCE
 	rm -f $(BINDIR)/leg
 	rm -f $(MANDIR)/peg.1
 
-%.o : $(SRC)/%.c
+%.o : $(SRC)/%_.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 peg.o : $(SRC)/peg.c $(SRC)/peg.peg-c

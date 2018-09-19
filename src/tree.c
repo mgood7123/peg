@@ -46,7 +46,7 @@ static inline Node *_newNode(int type, int size)
   return node;
 }
 
-#define newNode(T)	_newNode(T, sizeof(struct T))
+#define newNode(T)	_newNode(T, sizeof(struct _##T))
 
 Node *makeRule(char *name)
 {

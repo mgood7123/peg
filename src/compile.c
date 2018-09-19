@@ -27,7 +27,6 @@
 #endif
 
 #include "version.h"
-// #include "tree.h"
 
 static int yyl(void)
 {
@@ -408,6 +407,8 @@ static char *header= "\
 ";
 
 static char *preamble= "\
+int   yydebug = 0;\n\
+int   lineNumber = 0;\n\
 #ifndef YY_MALLOC\n\
 #define YY_MALLOC(C, N)		malloc(N)\n\
 #endif\n\
@@ -444,11 +445,7 @@ static char *preamble= "\
 #ifndef YY_END\n\
 #define YY_END		( yy->__end= yy->__pos, 1)\n\
 #endif\n\
-#ifdef YY_DEBUG\n\
-# define yyprintf(args)	fprintf args\n\
-#else\n\
-# define yyprintf(args)\n\
-#endif\n\
+# define yyprintf(args)	{ if (yydebug) fprintf args; }\n\
 #ifndef YYSTYPE\n\
 #define YYSTYPE	int\n\
 #endif\n\
@@ -470,6 +467,7 @@ struct _yycontext {\n\
   char     *__buf;\n\
   int       __buflen;\n\
   int       __pos;\n\
+  int       __pos2;\n\
   int       __limit;\n\
   char     *__text;\n\
   int       __textlen;\n\
@@ -497,6 +495,8 @@ struct _yycontext {\n\
 #define YY_INPUT(yy, buf, result, max_size)		\\\n\
   {							\\\n\
     int yyc= getchar();					\\\n\
+    if (yy) yy->__pos2++;\\\n\
+    if ('\\n' == yyc || '\\r' == yyc) ++lineNumber;	\\\n\
     result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1);	\\\n\
     yyprintf((stderr, \"<%c>\", yyc));			\\\n\
   }\n\
@@ -506,12 +506,14 @@ struct _yycontext {\n\
 #define YY_CTX_PARAM\n\
 #define YY_CTX_ARG_\n\
 #define YY_CTX_ARG\n\
-yycontext _yyctx= { 0, 0 };\n\
+yycontext _yyctx= { 0, 0, 0, 0 };\n\
 yycontext *yyctx= &_yyctx;\n\
 #ifndef YY_INPUT\n\
 #define YY_INPUT(buf, result, max_size)			\\\n\
   {							\\\n\
     int yyc= getchar();					\\\n\
+    if (yyctx) yyctx->__pos2++;\\\n\
+    if ('\\n' == yyc || '\\r' == yyc) ++lineNumber;	\\\n\
     result= (EOF == yyc) ? 0 : (*(buf)= yyc, 1);	\\\n\
     yyprintf((stderr, \"<%c>\", yyc));			\\\n\
   }\n\

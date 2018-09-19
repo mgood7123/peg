@@ -30,14 +30,13 @@ FILE *input= 0;
 int   verboseFlag= 0;
 int   nolinesFlag= 0;
 
-static int   lineNumber= 0;
 static char *fileName= 0;
 
 void yyerror(char *message);
-
 #define YY_INPUT(buf, result, max)			\
 {							\
   int c= getc(input);					\
+  if (yyctx) yyctx->__pos2++;\
   if ('\n' == c || '\r' == c) ++lineNumber;		\
   result= (EOF == c) ? 0 : (*(buf)= c, 1);		\
 }
@@ -51,16 +50,17 @@ void yyerror(char *message)
 {
   fprintf(stderr, "%s:%d: %s", fileName, lineNumber, message);
   if (yyctx->__text[0]) fprintf(stderr, " near token '%s'", yyctx->__text);
-  if (yyctx->__pos < yyctx->__limit || !feof(input))
+  if (!feof(input) && yyctx->__pos2 == yyctx->__limit) yyctx->__pos2--;
+  if (yyctx->__pos2 < yyctx->__limit || !feof(input))
     {
       yyctx->__buf[yyctx->__limit]= '\0';
       fprintf(stderr, " before text \"");
-      while (yyctx->__pos < yyctx->__limit)
+      while (yyctx->__pos2 < yyctx->__limit)
 	{
-	  if ('\n' == yyctx->__buf[yyctx->__pos] || '\r' == yyctx->__buf[yyctx->__pos]) break;
-	  fputc(yyctx->__buf[yyctx->__pos++], stderr);
+	  if ('\n' == yyctx->__buf[yyctx->__pos2] || '\r' == yyctx->__buf[yyctx->__pos2]) break;
+	  fputc(yyctx->__buf[yyctx->__pos2++], stderr);
 	}
-      if (yyctx->__pos == yyctx->__limit)
+      if (yyctx->__pos2 == yyctx->__limit)
 	{
 	  int c;
 	  while (EOF != (c= fgetc(input)) && '\n' != c && '\r' != c)
@@ -82,6 +82,7 @@ static void usage(char *name)
   version(name);
   fprintf(stderr, "usage: %s [<option>...] [<file>...]\n", name);
   fprintf(stderr, "where <option> can be\n");
+  fprintf(stderr, "  -d          turn on debugging\n");
   fprintf(stderr, "  -h          print this help information\n");
   fprintf(stderr, "  -o <ofile>  write output to <ofile>\n");
   fprintf(stderr, "  -P          do not generate #line directives\n");
@@ -102,13 +103,17 @@ int main(int argc, char **argv)
   lineNumber= 1;
   fileName= "<stdin>";
 
-  while (-1 != (c= getopt(argc, argv, "PVho:v")))
+  while (-1 != (c= getopt(argc, argv, "PVdho:v")))
     {
       switch (c)
 	{
 	case 'V':
 	  version(basename(argv[0]));
 	  exit(0);
+
+	case 'd':
+	  yydebug = 1;
+	  break;
 
 	case 'h':
 	  usage(basename(argv[0]));
