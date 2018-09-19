@@ -1,4 +1,5 @@
-CFLAGS = -g -Wall $(OFLAGS) $(XFLAGS) -Isrc
+SRC = src_
+CFLAGS = -g -w $(OFLAGS) $(XFLAGS) -I$(SRC)
 OFLAGS = -O3 -DNDEBUG
 #OFLAGS = -pg
 
@@ -31,7 +32,7 @@ $(BINDIR)/% : %
 $(MANDIR) :
 	mkdir -p $(MANDIR)
 
-$(MANDIR)/% : src/%
+$(MANDIR)/% : $(SRC)/%
 	cp -p $< $@
 
 uninstall : .FORCE
@@ -39,46 +40,46 @@ uninstall : .FORCE
 	rm -f $(BINDIR)/leg
 	rm -f $(MANDIR)/peg.1
 
-%.o : src/%.c
+%.o : $(SRC)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-peg.o : src/peg.c src/peg.peg-c
+peg.o : $(SRC)/peg.c $(SRC)/peg.peg-c
 
-leg.o : src/leg.c
+leg.o : $(SRC)/leg.c
 
 check : check-peg check-leg
 
 check-peg : peg.peg-c .FORCE
-	diff src/peg.peg-c peg.peg-c
+	diff $(SRC)/peg.peg-c peg.peg-c
 
 check-leg : leg.c .FORCE
-	diff src/leg.c leg.c
+	diff $(SRC)/leg.c leg.c
 
-peg.peg-c : src/peg.peg peg
+peg.peg-c : $(SRC)/peg.peg peg
 	./peg -o $@ $<
 
-leg.c : src/leg.leg leg
+leg.c : $(SRC)/leg.leg leg
 	./leg -o $@ $<
 
 new : newpeg newleg
 
 newpeg : peg.peg-c
-	mv src/peg.peg-c src/peg.peg-c-
-	mv peg.peg-c src/.
+	mv $(SRC)/peg.peg-c $(SRC)/peg.peg-c-
+	mv peg.peg-c $(SRC)/.
 
 newleg : leg.c
-	mv src/leg.c src/leg.c-
-	mv leg.c src/.
+	mv $(SRC)/leg.c $(SRC)/leg.c-
+	mv leg.c $(SRC)/.
 
 test examples : peg leg .FORCE
 	$(SHELL) -ec '(cd examples;  $(MAKE))'
 
 clean : .FORCE
-	rm -f src/*~ *~ *.o *.peg.[cd] *.leg.[cd] peg.peg-c leg.c
+	rm -f $(SRC)/*~ *~ *.o *.peg.[cd] *.leg.[cd] peg.peg-c
 	$(SHELL) -ec '(cd examples;  $(MAKE) $@)'
 
 spotless : clean .FORCE
-	rm -f src/*-
+	rm -f $(SRC)/*-
 	rm -rf build
 	rm -f peg
 	rm -f leg
